@@ -1,5 +1,5 @@
 # Главный файл приложения
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI
 from typing import List, Dict, Any
 from datetime import datetime
 
