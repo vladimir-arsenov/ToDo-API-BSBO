@@ -1,4 +1,4 @@
-# Readme для проекта ToDo Лист API
+# ToDo Лист API
 
 ## Название проекта
 ToDo Лист API
