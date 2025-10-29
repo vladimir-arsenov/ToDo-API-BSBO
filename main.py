@@ -1,6 +1,6 @@
 # Главный файл приложения
 from fastapi import FastAPI
-from routers import tasks
+from routers import tasks, stats
 
 app = FastAPI(
     title="ToDo лист API",
@@ -12,11 +12,8 @@ app = FastAPI(
 )
 
 app.include_router(tasks.router)
+app.include_router(stats.router)
 
 @app.get("/")
 async def welcome() -> dict:
     return {"message": "Привет, студент!" , "title": app.title, "description": app.description, "version": app.version, "contact":app.contact}
-
-@app.post("/tasks")
-async def create_task(task: dict):
-    return {"message" : "Запись успешно создана", "task" : task}
