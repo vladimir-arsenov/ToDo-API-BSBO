@@ -1,19 +1,68 @@
-# Главный файл приложения
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from contextlib import asynccontextmanager
+from database import  get_async_session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 from routers import tasks, stats
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Управление жизненным циклом приложения"""
+    # Код ДО yield выполняется при ЗАПУСКЕ
+    print("🚀 Запуск приложения...")
+    print("📊 Инициализация базы данных...")
+
+    print("✅ Приложение готово к работе!")
+
+    yield  # Здесь приложение работает
+
+    # Код ПОСЛЕ yield выполняется при ОСТАНОВКЕ
+    print("🛑 Остановка приложения...")
+
+
 app = FastAPI(
-    title="ToDo лист API",
+    title="ToDo List API",
     description="API для управления задачами с использованием матрицы Эйзенхауэра",
-    version="1.0.0",
+    version="2.0.0",
     contact={
-        "name" : "Владимир Арсенов"
-    }
+        "name": "Ваше Имя",
+    },
+    lifespan=lifespan  # Подключаем lifespan
 )
 
-app.include_router(tasks.router)
-app.include_router(stats.router)
+# Подключение роутеров
+app.include_router(tasks.router, prefix="/api/v2")
+app.include_router(stats.router, prefix="/api/v2")
+
 
 @app.get("/")
-async def welcome() -> dict:
-    return {"message": "Привет, студент!" , "title": app.title, "description": app.description, "version": app.version, "contact":app.contact}
+async def read_root() -> dict:
+    """Корневой эндпоинт"""
+    return {
+        "message": "Task Manager API - Управление задачами по матрице Эйзенхауэра",
+        "version": "2.0.0",
+        "database": "PostgreSQL (Supabase)",
+        "docs": "/docs",
+        "redoc": "/redoc",
+    }
+
+
+@app.get("/health")
+async def health_check(
+        db: AsyncSession = Depends(get_async_session)
+) -> dict:
+    """
+    Проверка здоровья API и динамическая проверка подключения к БД.
+    """
+    try:
+        # Пытаемся выполнить простейший запрос к БД
+        await db.execute(text("SELECT 1"))
+        db_status = "connected"
+    except Exception:
+        db_status = "disconnected"
+
+    return {
+        "status": "healthy",
+        "database": db_status
+    }
